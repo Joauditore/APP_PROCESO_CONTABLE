@@ -1692,7 +1692,86 @@ renderAdminTable();
   // --- DESDE AQUÍ PROGRAMAREMOS EL GUARDADO DE TUS DATOS ---
   console.log("¡Firebase conectado con éxito al proceso contable!");
 </script>
-</body>
+</body><script type="module">
+  // 1. Importamos las herramientas iniciales de Google
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+  // 2. Tus credenciales exclusivas del proyecto
+  const firebaseConfig = {
+    apiKey: "AIzaSyDil3Ltr3uV5_wNgl3WlZga1U0sWt6GJiU",
+    authDomain: "app-proceso-contable2.firebaseapp.com",
+    databaseURL: "https://app-proceso-contable2-default-rtdb.firebaseio.com",
+    projectId: "app-proceso-contable2",
+    storageBucket: "app-proceso-contable2.appspot.com",
+    messagingSenderId: "954134787088",
+    appId: "1:954134787088:web:35a32974dcfd08baf50695",
+    measurementId: "G-7BPZTXDX4G"
+  };
+
+  // 3. Inicializamos la conexión del sistema
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  // 4. INTERCEPTOR INTELIGENTE: Escucha cuando tu función original registra con éxito
+  if (typeof window.registrarAsiento === 'function') {
+    // Guardamos una copia de tu función original de ContaFlux
+    const funcionOriginalContaFlux = window.registrarAsiento;
+
+    // Redefinimos la función para que haga lo de siempre Y ADEMÁS guarde en Firebase
+    window.registrarAsiento = function() {
+      // Ejecutamos tus validaciones locales (Totales, debe, haber, alertas de dualidad)
+      funcionOriginalContaFlux();
+
+      // Si todo estuvo cuadrado, tus campos no se limpiaron antes de tiempo y podemos capturarlos
+      const numRaw = document.getElementById('a-num')?.value.trim();
+      const glosa  = document.getElementById('a-glosa')?.value.trim();
+      
+      // Si el asiento pasó las validaciones y hay datos en pantalla, mandamos el respaldo a la nube
+      if (numRaw && glosa) {
+        const fecha = document.getElementById('a-fecha')?.value;
+        const ndoc  = document.getElementById('a-ndoc')?.value.trim();
+        
+        const lineas = [];
+        document.querySelectorAll('.linea-row').forEach(function(r){
+          const cuentaInp = r.querySelector('input[type="text"]');
+          const cuenta = cuentaInp?.value.trim() || '';
+          const codigo = cuentaInp?.dataset.codigo || '';
+          const nombre = cuentaInp?.dataset.nombre || cuenta;
+          
+          // Captura de montos
+          const rawDebe = r.querySelector('[data-role="debe"]')?.dataset.raw || r.querySelector('[data-role="debe"]')?.value || "0";
+          const rawHaber = r.querySelector('[data-role="haber"]')?.dataset.raw || r.querySelector('[data-role="haber"]')?.value || "0";
+          const d = parseFloat(rawDebe.replace(/\./g,'')) || 0;
+          const h = parseFloat(rawHaber.replace(/\./g,'')) || 0;
+          
+          if (cuenta && (d || h)) {
+            lineas.push({ cuenta: cuenta, codigo: codigo, nombre: nombre, debe: d, haber: h });
+          }
+        });
+
+        const datosAsientoFirebase = {
+          numAsiento: numRaw,
+          fecha: fecha,
+          glosa: glosa,
+          n_documento: ndoc,
+          lineasDetalle: lineas,
+          fechaRegistroCloud: new Date().toISOString()
+        };
+
+        // Guardamos en la lista 'asientos_docentes' de tu Realtime Database
+        const referenciaAsientos = ref(database, 'asientos_docentes');
+        const nuevoAsientoRef = push(referenciaAsientos);
+        
+        set(nuevoAsientoRef, datosAsientoFirebase)
+          .then(() => console.log("¡Asiento respaldado en Firebase de forma automática!"))
+          .catch((e) => console.error("Error al subir a Firebase:", e));
+      }
+    };
+  }
+
+  console.log("¡Firebase conectado y acoplado con éxito al botón de ContaFlux!");
+</script>
 </html>
 <script type="module">
     // 1. Importamos las herramientas de Firebase
