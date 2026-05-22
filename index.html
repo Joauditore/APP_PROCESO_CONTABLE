@@ -1694,3 +1694,65 @@ renderAdminTable();
 </script>
 </body>
 </html>
+<script type="module">
+    // 1. Importamos las herramientas de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+    // 2. Tus credenciales exclusivas del proyecto
+    const firebaseConfig = {
+      apiKey: "AIzaSyDil3Ltr3uV5_wNgl3WlZga1U0sWt6GJiU",
+      authDomain: "app-proceso-contable2.firebaseapp.com",
+      databaseURL: "https://app-proceso-contable2-default-rtdb.firebaseio.com",
+      projectId: "app-proceso-contable2",
+      storageBucket: "app-proceso-contable2.appspot.com",
+      messagingSenderId: "954134787088",
+      appId: "1:954134787088:web:35a32974dcfd08baf50695",
+      measurementId: "G-7BPZTXDX4G"
+    };
+
+    // 3. Inicializamos la conexión
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // 4. Función global para capturar y guardar los datos contables
+    window.guardarAsientoContable = function() {
+      // Capturamos lo que el usuario escriba en pantalla
+      const fechaInput  = document.getElementById('fechaAsiento')?.value || "";
+      const glosaInput  = document.getElementById('glosaAsiento')?.value || "";
+      const cuentaInput = document.getElementById('cuentaContable')?.value || "";
+      const debeInput   = parseFloat(document.getElementById('montoDebe')?.value) || 0;
+      const haberInput  = parseFloat(document.getElementById('montoHaber')?.value) || 0;
+
+      // Validación rápida para no guardar filas vacías
+      if (!glosaInput && !cuentaInput) {
+        alert("Por favor, introduce una glosa o cuenta contable antes de guardar.");
+        return;
+      }
+
+      // Estructura ordenada para la base de datos
+      const nuevoAsiento = {
+        fecha: fechaInput,
+        glosa: glosaInput,
+        cuenta: cuentaInput,
+        debe: debeInput,
+        haber: haberInput,
+        fechaRegistro: new Date().toISOString()
+      };
+
+      // Guardamos en el nodo "asientos" en la nube
+      const referenciaAsientos = ref(database, 'asientos');
+      const nuevoAsientoRef = push(referenciaAsientos);
+      
+      set(nuevoAsientoRef, nuevoAsiento)
+        .then(() => {
+          alert("¡Registro contable guardado con éxito en Firebase!");
+        })
+        .catch((error) => {
+          console.error("Error al guardar:", error);
+          alert("No se pudo guardar el registro.");
+        });
+    }
+
+    console.log("¡Firebase conectado con éxito al proceso contable!");
+  </script>
