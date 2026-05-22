@@ -1666,5 +1666,31 @@ function imprimirPDF(){
 // ── INIT ──
 renderAdminTable();
 </script>
+<script type="module">
+  // 1. Importamos las herramientas iniciales de Google
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  
+  // 2. Importamos las funciones específicas para la Base de Datos Contable
+  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+  // 3. Tus credenciales exclusivas del proyecto
+  const firebaseConfig = {
+    apiKey: "AIzaSyDil3Ltr3uV5_wNgl3WlZga1U0sWt6GJiU",
+    authDomain: "app-proceso-contable2.firebaseapp.com",
+    databaseURL: "https://app-proceso-contable2-default-rtdb.firebaseio.com",
+    projectId: "app-proceso-contable2",
+    storageBucket: "app-proceso-contable2.appspot.com",
+    messagingSenderId: "954134787088",
+    appId: "1:954134787088:web:35a32974dcfd08baf50695",
+    measurementId: "G-7BPZTXDX4G"
+  };
+
+  // 4. Inicializamos la conexión del sistema
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  // --- DESDE AQUÍ PROGRAMAREMOS EL GUARDADO DE TUS DATOS ---
+  console.log("¡Firebase conectado con éxito al proceso contable!");
+</script>
 </body>
 </html>
